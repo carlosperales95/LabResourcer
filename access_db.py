@@ -1,9 +1,29 @@
 #!/usr/bin/python
-
+import credentials
 import MySQLdb
 
+queries = { "primary": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT primary_antibody_id FROM primary_antibody )",
+            "staining" : "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT staining_id FROM staining )" }
+
+def query(option):
+    sql = queries[option]
+    try:
+       # Execute the SQL command
+       cursor.execute(sql)
+       # Fetch all the rows in a list of lists.
+       results = cursor.fetchall()
+       for row in results:
+          chemid = row[0]
+          chemname = row[1]
+          # Now print fetched result
+          print "chemid=%s,chemname=%s" % \
+                 (chemid, chemname)
+    except:
+       print "Error: unable to fecth data"
+
+print "Username: %s Password: %s" % (credentials.username,credentials.password)
 # Open database connection
-db = MySQLdb.connect("localhost","root","CAPE95skype-con","lab_resourcer" )
+db = MySQLdb.connect("localhost",credentials.username,credentials.password,"lab_resourcer" )
 
 # prepare a cursor object using cursor() method
 cursor = db.cursor()
@@ -15,6 +35,17 @@ cursor.execute("SELECT VERSION()")
 data = cursor.fetchone()
 print "Database version : %s " % data
 
+print "-------\n"
+
+query("primary")
+
+print "--------\n"
+
+print "-------\n"
+
+query("staining")
+
+print "--------\n"
 #######READ FROM TABLE############
 sql = "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT primary_antibody_id FROM primary_antibody )" \
        #WHERE INCOME > '%d'" % (1000)
