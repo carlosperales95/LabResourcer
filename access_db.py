@@ -16,7 +16,7 @@ data = cursor.fetchone()
 print "Database version : %s " % data
 
 #######READ FROM TABLE############
-sql = "SELECT * FROM chemical" \
+sql = "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT primary_antibody_id FROM primary_antibody )" \
        #WHERE INCOME > '%d'" % (1000)
 try:
    # Execute the SQL command
