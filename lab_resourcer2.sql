@@ -3,10 +3,11 @@
 -- http://www.phpmyadmin.net
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-12-2018 a las 19:39:59
+-- Tiempo de generación: 03-12-2018 a las 19:43:45
 -- Versión del servidor: 10.1.13-MariaDB
 -- Versión de PHP: 5.6.23
 
+SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
@@ -19,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `lab_resourcer`
 --
+CREATE DATABASE IF NOT EXISTS `lab_resourcer` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `lab_resourcer`;
 
 -- --------------------------------------------------------
 
@@ -435,7 +438,8 @@ ALTER TABLE `inventory`
 -- AUTO_INCREMENT de la tabla `researcher`
 --
 ALTER TABLE `researcher`
-  MODIFY `researcher_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `researcher_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;SET FOREIGN_KEY_CHECKS=1;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
