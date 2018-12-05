@@ -2,6 +2,8 @@
 import credentials
 import MySQLdb
 
+
+
 queries = { "primary": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT primary_antibody_id FROM primary_antibody )",
             "staining": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT staining_id FROM staining )"
             }
@@ -36,7 +38,57 @@ def show_researchers():
     except:
        print "Error: unable to fetch researchers"
 
-def get_inputValues():
+def get_chem_step(step):
+    steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8,}
+    return steps[step],60*((n_slices//7)+1)
+
+def get_chem_block1():
+    chemicals=[(4,5.14*((n_slices//7)+1)),(5,54.86*((n_slices//7)+1))] #35%H2O2 and TBS
+    return chemicals
+
+def get_chem_block2():
+    total = n_slices * 0.2 + 0.1
+    nds = total*0.03
+    triton = total*0.005/20
+    tbs = total-nds-triton
+    chemicals = [(7,nds),(6,triton),(5,tbs)]
+    return chemicals
+
+def get_chem_prim_antibody():
+    chemicals = get_chem_block2()
+    total = n_slices * 0.2 + 0.1
+    final_dilution = pa_dilution/2 #Get pa_diution from query
+    pa_amount = total/final_dilution
+    chemicals.append((primary_id,pa_amount))
+    return chemicals
+
+def get_chem_sec_antibody():
+    return secondary_id,n_slices*0.1
+
+def get_chem_staining():
+    print "staining_id: ", staining_id
+    return staining_id,0.2 * n_slices
+
+
+def get_chem_simple():
+    chemicals = []
+    chemicals.append(get_chem_step("degrease")) #degrease
+    chemicals.append(get_chem_step("antigen"))#antigen
+    chemicals.append(get_chem_step("wash"))#wash
+    chemicals.append(get_chem_block1())#block1
+    chemicals.append(get_chem_step("wash"))#wash
+    chemicals.append(get_chem_block2())#block2
+    chemicals.append(get_chem_prim_antibody())#pa
+    chemicals.append(get_chem_step("wash"))#wash
+    chemicals.append(get_chem_sec_antibody())#sa
+    chemicals.append(get_chem_step("wash"))#wash
+    chemicals.append(get_chem_staining())#staining
+    chemicals.append(get_chem_step("wash"))#wash
+    chemicals.append(get_chem_step("coverslip"))#coverslip
+
+    return chemicals
+
+def get_inputValues(researcher_id,n_sices,primary_id,staining_id):
     print("-------------------------------------------------------------------- \n")
     print("         Welcome to LabResourcer - by Miguel and Carlos \n")
     print("-------------------------------------------------------------------- \n")
@@ -53,7 +105,7 @@ def get_inputValues():
     print("     EXPERIMENT PREPARATION - INPUT PHASE: AMOUNT OF TISSUE \n")
     print("______________________________________________________________________\n")
     print("\n")
-    slices_n = raw_input("Please enter the amount of slices to be used in this experiment: ")
+    n_slices = raw_input("Please enter the amount of slices to be used in this experiment: ")
     print("\n")
 
     print("     EXPERIMENT PREPARATION - INPUT PHASE: PRIMARY ANTIBODY SELECTION \n")
@@ -69,7 +121,9 @@ def get_inputValues():
     print("List of Staining Methods:")
     query("staining")
     print("\n")
-    primary_id = raw_input("Please select the staining ID you want to perform: ")
+
+    staining_id = raw_input("Please select the staining ID you want to perform: ")
+    print "Stianing_id after input: ",staining_id
     print("\n")
 
     print("     EXPERIMENT PREPARATION - INPUT PHASE: PROTOCOL SELECTION \n")
@@ -101,21 +155,36 @@ def get_inputValues():
     print("\n")
 
 
-
 # Open database connection
 db = MySQLdb.connect("localhost",credentials.username,credentials.password,"lab_resourcer" )
 
 # prepare a cursor object using cursor() method
 cursor = db.cursor()
 
-get_inputValues()
+
+
+researcher_id = 0
+primary_id = 0
+secondary_id = 0
+staining_id = 0
+n_slices = 0
+pa_dilution = 0 #Delete later get from query
+
+get_inputValues(researcher_id,n_slices,primary_id,staining_id)
+
+print "staining_id in main: ",staining_id
+secondary_id = 1
+pa_dilution = 0.002
+
+chemicals = get_chem_simple()
+
+print(chemicals)
+
+db.close()
 
 
 
-
-
-
-
+'''
 #######READ FROM TABLE############
 sql = "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT primary_antibody_id FROM primary_antibody )" \
        #WHERE INCOME > '%d'" % (1000)
@@ -180,4 +249,4 @@ except:
 
 
 # disconnect from server
-db.close()
+'''
