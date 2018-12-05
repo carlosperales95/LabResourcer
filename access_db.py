@@ -39,7 +39,7 @@ def show_researchers():
        print "Error: unable to fetch researchers"
 
 def get_chem_step(step):
-    steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8,}
+    steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8}
     return steps[step],60*((n_slices//7)+1)
 
 def get_chem_block1():
@@ -88,7 +88,7 @@ def get_chem_simple():
 
     return chemicals
 
-def get_inputValues(researcher_id,n_sices,primary_id,staining_id):
+def get_inputValues():
     print("-------------------------------------------------------------------- \n")
     print("         Welcome to LabResourcer - by Miguel and Carlos \n")
     print("-------------------------------------------------------------------- \n")
@@ -99,13 +99,13 @@ def get_inputValues(researcher_id,n_sices,primary_id,staining_id):
     show_researchers()
     print("List of Researchers:")
     print("\n")
-    researcher_id = raw_input("Please enter your researcher ID: ")
+    researcher_id = int(raw_input("Please enter your researcher ID: "))
     print("\n")
 
     print("     EXPERIMENT PREPARATION - INPUT PHASE: AMOUNT OF TISSUE \n")
     print("______________________________________________________________________\n")
     print("\n")
-    n_slices = raw_input("Please enter the amount of slices to be used in this experiment: ")
+    n_slices = int(raw_input("Please enter the amount of slices to be used in this experiment: "))
     print("\n")
 
     print("     EXPERIMENT PREPARATION - INPUT PHASE: PRIMARY ANTIBODY SELECTION \n")
@@ -113,7 +113,7 @@ def get_inputValues(researcher_id,n_sices,primary_id,staining_id):
     print("List of Primary Antibodies:")
     query("primary")
     print("\n")
-    primary_id = raw_input("Please select the primary antibody ID that you will use in your experiment: ")
+    primary_id = int(raw_input("Please select the primary antibody ID that you will use in your experiment: "))
     print("\n")
 
     print("     EXPERIMENT PREPARATION - INPUT PHASE: STAINING METHOD SELECTION \n")
@@ -122,7 +122,7 @@ def get_inputValues(researcher_id,n_sices,primary_id,staining_id):
     query("staining")
     print("\n")
 
-    staining_id = raw_input("Please select the staining ID you want to perform: ")
+    staining_id = int(raw_input("Please select the staining ID you want to perform: "))
     print "Stianing_id after input: ",staining_id
     print("\n")
 
@@ -154,6 +154,7 @@ def get_inputValues(researcher_id,n_sices,primary_id,staining_id):
     ##4. Cancel
     print("\n")
 
+    return researcher_id,n_slices,primary_id,staining_id
 
 # Open database connection
 db = MySQLdb.connect("localhost",credentials.username,credentials.password,"lab_resourcer" )
@@ -161,16 +162,7 @@ db = MySQLdb.connect("localhost",credentials.username,credentials.password,"lab_
 # prepare a cursor object using cursor() method
 cursor = db.cursor()
 
-
-
-researcher_id = 0
-primary_id = 0
-secondary_id = 0
-staining_id = 0
-n_slices = 0
-pa_dilution = 0 #Delete later get from query
-
-get_inputValues(researcher_id,n_slices,primary_id,staining_id)
+researcher_id,n_slices,primary_id,staining_id = get_inputValues()
 
 print "staining_id in main: ",staining_id
 secondary_id = 1
