@@ -2,12 +2,9 @@
 import credentials
 import MySQLdb
 
-
-
 queries = { "primary": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT primary_antibody_id FROM primary_antibody )",
             "staining": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT staining_id FROM staining )"
             }
-
 
 def query(option):
     sql = queries[option]
@@ -119,6 +116,27 @@ def get_researcher_name(id):
     except:
         print "Error: unable to fetch data"
 
+def get_pa_dilution(pa_id):
+    sql = "SELECT dilution FROM primary_antibody WHERE primary_antibody_id = %s" % pa_id
+
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchone()
+    except:
+        print "Error: Primary antibody %s not found" % pa_id
+
+    return result[0]
+
+def get_sec_antibody(pa_id,staining_id):
+    sql = "SELECT secondary_antibody_id FROM binding WHERE primary_antibody_id = %s and staining_id = %s " % (pa_id,staining_id)
+
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchone()
+    except:
+        print "Error: No secondary antibody found for pa_id: %s and staining_id: %s " % (pa_id,staining_id)
+
+    return result[0]
 
 def dissolve_inTuple(dest_array, orig_array):
     for item in orig_array:
@@ -250,14 +268,15 @@ researcher_id,n_slices,primary_id,staining_id = get_inputValues()
 print("Calculating values with the experiment input...")
 print("\n")
 
-secondary_id = 9
-pa_dilution = 0.002
+secondary_id = get_sec_antibody(primary_id,staining_id)
+pa_dilution = get_pa_dilution(primary_id)
 
 chemicals = get_chem_simple()
 chemicals = join_equals(chemicals)
 
 output_phase(researcher_id, n_slices, primary_id, staining_id)
 
+print "secondary_antibody_id: %s name: %s" %(secondary_id,get_chemical_name(secondary_id))
 
 for id, quantity in chemicals:
     #get_chemical name query = name
