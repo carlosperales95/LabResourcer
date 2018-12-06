@@ -105,32 +105,23 @@ def join_equalsi(array):
         array[idx] = [item[0], sum]
         del array[idy]
 
-def join_equals(array):
 
-    print(array)
-    for index, item in enumerate(array):
-        sum = item[1]
-        positions = []
-        for index2, reitem in enumerate(array):
-            if item[0] == reitem[0]:
-                if index == index2:
-                    continue
-                sum += reitem[1]
-                positions.append(index2)
-        print "Ind1: %i and Ind2: %i" %(index, index2)
-        array[index] = (item[0], sum)
-        print(array)
-        array2 = []
-        for index3, e in enumerate(array):
-            if index3 not in positions:
-                array2.append(e)
-        print(array2)
-        array = array2
+def join_equals(list):
+    chemicals = {}
 
-        #for repeated in positions:
-            #del array[repeated]
+    for item in list:
+        if item[0] in chemicals:
+            chemicals[item[0]]+=item[1]
+        else:
+            chemicals[item[0]]=item[1]
 
+    chem_list = []
 
+    #Converting back to list
+    for key,value in chemicals.iteritems():
+        chem_list.append((key,value))
+
+    return chem_list
 
 def get_chem_simple():
     chemicals = []
@@ -150,8 +141,6 @@ def get_chem_simple():
     chemicals.append(get_chem_staining())#staining
     chemicals.append(get_chem_step("wash"))#wash
     chemicals.append(get_chem_step("coverslip"))#coverslip
-
-    join_equals(chemicals)
 
     return chemicals
 
@@ -238,12 +227,18 @@ pa_dilution = 0.002
 
 chemicals = get_chem_simple()
 
-#join_equals(chemicals)
+for id, quantity in chemicals:
+    #get_chemical name query = name
+    name = get_chemical_name(id)
+    print "(%i)%s - %.6f" % (id, name, quantity)
+
+print "---------------------\n"
+chemicals = join_equals(chemicals)
 
 for id, quantity in chemicals:
     #get_chemical name query = name
     name = get_chemical_name(id)
-    print "(%i)%s - %d" % (id, name, quantity)
+    print "(%i)%s - %.6f" % (id, name, quantity)
 
 #print(chemicals)
 
