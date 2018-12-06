@@ -262,7 +262,7 @@ output_phase(researcher_id, n_slices, primary_id, staining_id)
 for id, quantity in chemicals:
     #get_chemical name query = name
     name = get_chemical_name(id)
-    print "(%i)%s - %.3f" % (id, name, quantity)
+    print "(%i)%s - %.3f ml" % (id, name, quantity)
 
 #print(chemicals)
 
