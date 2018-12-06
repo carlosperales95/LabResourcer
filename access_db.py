@@ -40,34 +40,96 @@ def show_researchers():
 
 def get_chem_step(step):
     steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8}
-    return steps[step],60*((n_slices//7)+1)
+    return steps[step], (60*((n_slices//7)+1))
 
 def get_chem_block1():
-    chemicals=[(4,5.14*((n_slices//7)+1)),(5,54.86*((n_slices//7)+1))] #35%H2O2 and TBS
-    return chemicals
+    chems=[(4,5.14*((n_slices//7)+1)),(5,54.86*((n_slices//7)+1))] #35%H2O2 and TBS
+    return chems
 
 def get_chem_block2():
     total = n_slices * 0.2 + 0.1
     nds = total*0.03
     triton = total*0.005/20
     tbs = total-nds-triton
-    chemicals = [(7,nds),(6,triton),(5,tbs)]
-    return chemicals
+    chems = [(7,nds),(6,triton),(5,tbs)]
+    return chems
 
 def get_chem_prim_antibody():
-    chemicals = get_chem_block2()
+    chems = get_chem_block2()
     total = n_slices * 0.2 + 0.1
     final_dilution = pa_dilution/2 #Get pa_diution from query
     pa_amount = total/final_dilution
-    chemicals.append((primary_id,pa_amount))
-    return chemicals
+    chems.append((primary_id,pa_amount))
+    return chems
 
 def get_chem_sec_antibody():
-    return secondary_id,n_slices*0.1
+    return secondary_id, (n_slices*0.1)
 
 def get_chem_staining():
     print "staining_id: ", staining_id
-    return staining_id,0.2 * n_slices
+    return staining_id, (0.2 * n_slices)
+
+
+def get_chemical_name(id):
+
+    sql = "SELECT * FROM chemical WHERE chemical_id = %s" % (id)
+
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+        # Fetch all the rows in a list of lists.
+        results = cursor.fetchall()
+        for row in results:
+            return row[1]
+
+    except:
+        print "Error: unable to fecth data"
+
+
+def dissolve_inTuple(dest_array, orig_array):
+    for item in orig_array:
+        dest_array.append(item)
+
+def join_equalsi(array):
+    sum = 0
+    for idx, item in enumerate(array):
+        print "Iteration %i" % (idx)
+        print(item)
+        for idy, reitem in enumerate(array):
+            print "SubIteration %i" % (idy)
+            print(reitem)
+            if reitem[0] == item[0]:
+                if idx == idy:
+                    continue
+                sum = sum + reitem[1]
+        array[idx] = [item[0], sum]
+        del array[idy]
+
+def join_equals(array):
+
+    print(array)
+    for index, item in enumerate(array):
+        sum = item[1]
+        positions = []
+        for index2, reitem in enumerate(array):
+            if item[0] == reitem[0]:
+                if index == index2:
+                    continue
+                sum += reitem[1]
+                positions.append(index2)
+        print "Ind1: %i and Ind2: %i" %(index, index2)
+        array[index] = (item[0], sum)
+        print(array)
+        array2 = []
+        for index3, e in enumerate(array):
+            if index3 not in positions:
+                array2.append(e)
+        print(array2)
+        array = array2
+
+        #for repeated in positions:
+            #del array[repeated]
+
 
 
 def get_chem_simple():
@@ -75,10 +137,13 @@ def get_chem_simple():
     chemicals.append(get_chem_step("degrease")) #degrease
     chemicals.append(get_chem_step("antigen"))#antigen
     chemicals.append(get_chem_step("wash"))#wash
-    chemicals.append(get_chem_block1())#block1
+    chems = get_chem_block1()#block1
+    dissolve_inTuple(chemicals, chems)
     chemicals.append(get_chem_step("wash"))#wash
-    chemicals.append(get_chem_block2())#block2
-    chemicals.append(get_chem_prim_antibody())#pa
+    chems = get_chem_block2()#block2
+    dissolve_inTuple(chemicals, chems)
+    chems = get_chem_prim_antibody()#pa
+    dissolve_inTuple(chemicals, chems)
     chemicals.append(get_chem_step("wash"))#wash
     chemicals.append(get_chem_sec_antibody())#sa
     chemicals.append(get_chem_step("wash"))#wash
@@ -86,7 +151,11 @@ def get_chem_simple():
     chemicals.append(get_chem_step("wash"))#wash
     chemicals.append(get_chem_step("coverslip"))#coverslip
 
+    join_equals(chemicals)
+
     return chemicals
+
+
 
 def get_inputValues():
     print("-------------------------------------------------------------------- \n")
@@ -164,13 +233,19 @@ cursor = db.cursor()
 
 researcher_id,n_slices,primary_id,staining_id = get_inputValues()
 
-print "staining_id in main: ",staining_id
 secondary_id = 1
 pa_dilution = 0.002
 
 chemicals = get_chem_simple()
 
-print(chemicals)
+#join_equals(chemicals)
+
+for id, quantity in chemicals:
+    #get_chemical name query = name
+    name = get_chemical_name(id)
+    print "(%i)%s - %d" % (id, name, quantity)
+
+#print(chemicals)
 
 db.close()
 
