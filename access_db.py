@@ -43,14 +43,14 @@ def show_researchers():
 
 def get_chem_step(step):
     steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8}
-    quant = (n_slices//7)
+    quant = (n_slices//8)+1
     quant = 60 * quant
     return steps[step], quant
 
 
 def get_chem_block1():
     chems = []
-    quant = (n_slices//7)
+    quant = (n_slices//8)+1
     quant1 = 5.14 * quant
     quant2 = 54.86 * quant
 
@@ -265,6 +265,12 @@ for id, quantity in chemicals:
     print "(%i)%s - %.3f" % (id, name, quantity)
 
 #print(chemicals)
+
+#def inventory_checkup():
+    #query to check the amounts available for chemicals[] in inventory and add status to dest_array
+
+
+
 
 db.close()
 
