@@ -8,6 +8,7 @@ queries = { "primary": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT 
             "staining": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT staining_id FROM staining )"
             }
 
+
 def query(option):
     sql = queries[option]
     try:
@@ -22,6 +23,7 @@ def query(option):
           print "%s.- %s" % (chemid, chemname)
     except:
        print "Error: unable to fetch data"
+
 
 def show_researchers():
     sql = "SELECT * FROM researcher"
@@ -38,11 +40,13 @@ def show_researchers():
     except:
        print "Error: unable to fetch researchers"
 
+
 def get_chem_step(step):
     steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8}
     quant = (n_slices//7)
     quant = 60 * quant
     return steps[step], quant
+
 
 def get_chem_block1():
     chems = []
@@ -54,6 +58,7 @@ def get_chem_block1():
     chems.append((5, quant2))
 
     return chems
+
 
 def get_chem_block2():
     total = (n_slices * 0.2) + 0.1
@@ -74,8 +79,10 @@ def get_chem_prim_antibody():
 
     return chems
 
+
 def get_chem_sec_antibody():
     return secondary_id, (n_slices * 0.1)
+
 
 def get_chem_staining():
     return staining_id, (0.2 * n_slices)
@@ -117,21 +124,6 @@ def dissolve_inTuple(dest_array, orig_array):
     for item in orig_array:
         dest_array.append(item)
 
-def join_equalsi(array):
-    sum = 0
-    for idx, item in enumerate(array):
-        print "Iteration %i" % (idx)
-        print(item)
-        for idy, reitem in enumerate(array):
-            print "SubIteration %i" % (idy)
-            print(reitem)
-            if reitem[0] == item[0]:
-                if idx == idy:
-                    continue
-                sum = sum + reitem[1]
-        array[idx] = [item[0], sum]
-        del array[idy]
-
 
 def join_equals(list):
     chemicals = {}
@@ -149,6 +141,7 @@ def join_equals(list):
         chem_list.append((key,value))
 
     return chem_list
+
 
 def get_chem_simple():
     chemicals = []
@@ -170,7 +163,6 @@ def get_chem_simple():
     chemicals.append(get_chem_step("coverslip"))#coverslip
 
     return chemicals
-
 
 
 def get_inputValues():
@@ -218,6 +210,7 @@ def get_inputValues():
     print("\n")
 
     return researcher_id,n_slices,primary_id,staining_id
+
 
 def output_phase(researcher_id, n_slices, primary_id, staining_id):
 
