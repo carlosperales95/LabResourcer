@@ -40,33 +40,44 @@ def show_researchers():
 
 def get_chem_step(step):
     steps={"degrease":2,"antigen":3,"wash":5,"coverslip":8}
-    return steps[step], (60*((n_slices//7)+1))
+    quant = (n_slices//7)
+    quant = 60 * quant
+    return steps[step], quant
 
 def get_chem_block1():
-    chems=[(4,5.14*((n_slices//7)+1)),(5,54.86*((n_slices//7)+1))] #35%H2O2 and TBS
+    chems = []
+    quant = (n_slices//7)
+    quant1 = 5.14 * quant
+    quant2 = 54.86 * quant
+
+    chems.append((4, quant1))
+    chems.append((5, quant2))
+
     return chems
 
 def get_chem_block2():
-    total = n_slices * 0.2 + 0.1
-    nds = total*0.03
-    triton = total*0.005/20
+    total = (n_slices * 0.2) + 0.1
+    nds = total * 0.03
+    triton = total * 0.025
     tbs = total-nds-triton
     chems = [(7,nds),(6,triton),(5,tbs)]
+
     return chems
+
 
 def get_chem_prim_antibody():
     chems = get_chem_block2()
-    total = n_slices * 0.2 + 0.1
+    total = (n_slices * 0.2) + 0.1
     final_dilution = pa_dilution/2 #Get pa_diution from query
     pa_amount = total/final_dilution
     chems.append((primary_id,pa_amount))
+
     return chems
 
 def get_chem_sec_antibody():
-    return secondary_id, (n_slices*0.1)
+    return secondary_id, (n_slices * 0.1)
 
 def get_chem_staining():
-    print "staining_id: ", staining_id
     return staining_id, (0.2 * n_slices)
 
 
@@ -83,7 +94,23 @@ def get_chemical_name(id):
             return row[1]
 
     except:
-        print "Error: unable to fecth data"
+        print "Error: unable to fetch data"
+
+
+def get_researcher_name(id):
+
+    sql = "SELECT * FROM researcher WHERE researcher_id = %s" % (id)
+
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+        # Fetch all the rows in a list of lists.
+        results = cursor.fetchall()
+        for row in results:
+            return row[1]
+
+    except:
+        print "Error: unable to fetch data"
 
 
 def dissolve_inTuple(dest_array, orig_array):
@@ -190,16 +217,21 @@ def get_inputValues():
     #query("protocol")
     print("\n")
 
-    print("Calculating values with the experiment input...")
-    print("\n")
+    return researcher_id,n_slices,primary_id,staining_id
+
+def output_phase(researcher_id, n_slices, primary_id, staining_id):
+
+    primary_name = get_chemical_name(primary_id)
+    staining_name = get_chemical_name(staining_id)
+    researcher_name = get_researcher_name(researcher_id)
 
     print("     EXPERIMENT PREPARATION - OUTPUT PHASE\n")
     print("______________________________________________________________________\n")
-    print("Researcher: \n")
+    print "Researcher: %s - ID(%i) \n" %(researcher_name, researcher_id)
     print("Experiment ID: \n")
-    print("Number of slices: \n")
-    print("Primary antibody: \n")
-    print("Staining Method: \n")
+    print "Number of slices: %i \n" %(n_slices)
+    print "Primary antibody: %s - ID(%i) \n" %(primary_name, primary_id)
+    print "Staining Method: %s - ID(%i) \n" %(staining_name, staining_id)
 
     print("\n")
     print("List of Chemicals Needed:")
@@ -212,7 +244,7 @@ def get_inputValues():
     ##4. Cancel
     print("\n")
 
-    return researcher_id,n_slices,primary_id,staining_id
+
 
 # Open database connection
 db = MySQLdb.connect("localhost",credentials.username,credentials.password,"lab_resourcer" )
@@ -222,23 +254,22 @@ cursor = db.cursor()
 
 researcher_id,n_slices,primary_id,staining_id = get_inputValues()
 
-secondary_id = 1
+print("Calculating values with the experiment input...")
+print("\n")
+
+secondary_id = 9
 pa_dilution = 0.002
 
 chemicals = get_chem_simple()
-
-for id, quantity in chemicals:
-    #get_chemical name query = name
-    name = get_chemical_name(id)
-    print "(%i)%s - %.6f" % (id, name, quantity)
-
-print "---------------------\n"
 chemicals = join_equals(chemicals)
 
+output_phase(researcher_id, n_slices, primary_id, staining_id)
+
+
 for id, quantity in chemicals:
     #get_chemical name query = name
     name = get_chemical_name(id)
-    print "(%i)%s - %.6f" % (id, name, quantity)
+    print "(%i)%s - %.3f" % (id, name, quantity)
 
 #print(chemicals)
 
