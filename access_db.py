@@ -69,9 +69,13 @@ def get_chem_block2():
 
 def get_chem_prim_antibody():
     chems = get_chem_block2()
+    print(chems)
     total = (n_slices * 0.2) + 0.1
+    print(total)
     final_dilution = pa_dilution/2 #Get pa_diution from query
+    print(final_dilution)
     pa_amount = total/final_dilution
+    print(pa_amount)
     chems.append((primary_id,pa_amount))
 
     return chems
@@ -116,6 +120,7 @@ def get_researcher_name(id):
     except:
         print "Error: unable to fetch data"
 
+
 def get_pa_dilution(pa_id):
     sql = "SELECT dilution FROM primary_antibody WHERE primary_antibody_id = %s" % pa_id
 
@@ -127,6 +132,7 @@ def get_pa_dilution(pa_id):
 
     return result[0]
 
+
 def get_sec_antibody(pa_id,staining_id):
     sql = "SELECT secondary_antibody_id FROM binding WHERE primary_antibody_id = %s and staining_id = %s " % (pa_id,staining_id)
 
@@ -137,6 +143,7 @@ def get_sec_antibody(pa_id,staining_id):
         print "Error: No secondary antibody found for pa_id: %s and staining_id: %s " % (pa_id,staining_id)
 
     return result[0]
+
 
 def dissolve_inTuple(dest_array, orig_array):
     for item in orig_array:
