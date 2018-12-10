@@ -67,12 +67,12 @@ def get_chem_block2():
     return chems
 
 
-def get_chem_prim_antibody():
+def get_chem_prim_antibody(primary_id):
     chems = get_chem_block2()
     print(chems)
     total = (n_slices * 0.2) + 0.1
     print(total)
-    final_dilution = pa_dilution/2 #Get pa_diution from query
+    final_dilution = pa_dilution/2 #Get pa_dilution from query
     print(final_dilution)
     pa_amount = total/final_dilution
     print(pa_amount)
@@ -81,11 +81,11 @@ def get_chem_prim_antibody():
     return chems
 
 
-def get_chem_sec_antibody():
+def get_chem_sec_antibody(secondary_id):
     return secondary_id, (n_slices * 0.1)
 
 
-def get_chem_staining():
+def get_chem_staining(staining_id):
     return staining_id, (0.2 * n_slices)
 
 
@@ -168,7 +168,7 @@ def join_equals(list):
     return chem_list
 
 
-def get_chem_simple():
+def get_chem_simple(primary_id,secondary_id,staining_id):
     chemicals = []
     chemicals.append(get_chem_step("degrease")) #degrease
     chemicals.append(get_chem_step("antigen"))#antigen
@@ -178,17 +178,27 @@ def get_chem_simple():
     chemicals.append(get_chem_step("wash"))#wash
     chems = get_chem_block2()#block2
     dissolve_inTuple(chemicals, chems)
-    chems = get_chem_prim_antibody()#pa
+    chems = get_chem_prim_antibody(primary_id)#pa
     dissolve_inTuple(chemicals, chems)
     chemicals.append(get_chem_step("wash"))#wash
-    chemicals.append(get_chem_sec_antibody())#sa
+    chemicals.append(get_chem_sec_antibody(secondary_id))#sa
     chemicals.append(get_chem_step("wash"))#wash
-    chemicals.append(get_chem_staining())#staining
+    chemicals.append(get_chem_staining(staining_id))#staining
     chemicals.append(get_chem_step("wash"))#wash
     chemicals.append(get_chem_step("coverslip"))#coverslip
 
     return chemicals
 
+''''
+def get_chem_double():
+    chemicals = []
+    chemicals.append(get_chem_step("antigen"))#antigen
+    chemicals.append(get_chem_step("wash"))#wash
+    dissolve_inTuple(chemicals, chems)
+    chemicals.append(get_chem_step("wash"))#wash
+    chems = get_chem_block2()#block2
+    dissolve_inTuple(chemicals, chems)
+'''
 
 def get_inputValues():
     print("-------------------------------------------------------------------- \n")
@@ -278,7 +288,7 @@ print("\n")
 secondary_id = get_sec_antibody(primary_id,staining_id)
 pa_dilution = get_pa_dilution(primary_id)
 
-chemicals = get_chem_simple()
+chemicals = get_chem_simple(primary_id,secondary_id,staining_id)
 chemicals = join_equals(chemicals)
 
 output_phase(researcher_id, n_slices, primary_id, staining_id)
