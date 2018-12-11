@@ -6,6 +6,7 @@ queries = { "primary": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT 
             "staining": "SELECT * FROM chemical WHERE chemical_id = ANY ( SELECT staining_id FROM staining )"
             }
 
+
 def query(option):
     sql = queries[option]
     try:
@@ -20,7 +21,6 @@ def query(option):
           print "%s.- %s" % (chemid, chemname)
     except:
        print "Error: unable to fetch data"
-
 
 
 def get_chemical_name(id):
@@ -78,6 +78,7 @@ def get_pa_animal(pa_id):
 
     return result[0]
 
+
 def get_sec_antibody(pa_id,s_id):
     sql = "SELECT secondary_antibody_id FROM binding WHERE primary_antibody_id = %s and staining_id = %s " % (pa_id,s_id)
 
@@ -105,6 +106,46 @@ def show_researchers():
     except:
        print "Error: unable to fetch researchers"
 
+
+def check_availability(chemical_id):
+
+    sql = "SELECT * FROM inventory_chemical WHERE chemical_id = %s" % (chemical_id)
+    amount = 0
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+        # Fetch all the rows in a list of lists.
+        results = cursor.fetchall()
+        for row in results:
+            amount = row[2]
+
+    except:
+        print "Error: unable to fetch data"
+
+    res_amount = check_reserved(chemical_id)
+
+    for reserve in res_amount:
+        amount -= reserve
+
+    return amount
+
+
+def check_reserved(chemical_id):
+
+    sql = "SELECT * FROM experiment_chemical WHERE chemical_id = %s" % (chemical_id)
+    amount = []
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+        # Fetch all the rows in a list of lists.
+        results = cursor.fetchall()
+        for row in results:
+            amount.append(row[2])
+
+    except:
+        print "Error: unable to fetch data"
+
+    return amount
 
 
 
@@ -404,6 +445,8 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     print("List of Chemicals Needed:")
     print("=========================")
     #list with availability
+    reservation_phase(chemicals, researcher_id)
+
     #for availability give options
     ##1. Reserve available chemicals and request all unavailables
     ##2. Reserve availables and manage requests
@@ -417,6 +460,17 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
         print "(%i)%s - %.3f ml" % (id, name, quantity)
 
 
+def reservation_phase(chemicals, researcher_id):
+
+    final_chemicals = []
+
+    for id, quantity in chemicals:
+        amount = check_availability(id)
+        final_chemicals.append((id, quantity, (amount-quantity)))
+
+    return final_chemicals
+
+
 def execution():
 
     researcher_id, n_slices, primaries, stainings = input_phase()
@@ -428,7 +482,6 @@ def execution():
     chemicals = calculation_phase(n_slices, primaries, stainings)
 
     output_phase(chemicals, researcher_id, n_slices, primaries, stainings)
-
 
 
 
