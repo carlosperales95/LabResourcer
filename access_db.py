@@ -423,6 +423,29 @@ def calculation_phase(n_slices, primaries, stainings):
 
     return chemicals
 
+def reserve_chemicals(experiment_id,chemicals):
+    for chemical in chemicals:
+        sql = "INSERT INTO experiment_chemical(experiment_id,chemical_id,name)VALUES (%s,%s,%s)" % (experiment_id,chemical[0],chemical[1])
+        try:
+           # Execute the SQL command
+           cursor.execute(sql)
+           # Commit your changes in the database
+           db.commit()
+        except:
+           # Rollback in case there is any error
+           db.rollback()
+
+def split_chemicals_availability(chemicals):
+    available = []
+    unavailable = []
+
+    for chemical in chemicals:
+        if chemical[2]>=0:
+            available.append((chemical[0],chemical[1])) #Append chemcal_id and amount Needed
+        else:
+            unavailable.append((chemical[0],chemical[2]*(-1))) #Append chemical_id and necessary amount to request
+
+    return available, unavailable
 
 def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
 
@@ -445,7 +468,17 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     print("List of Chemicals Needed:")
     print("=========================")
     #list with availability
-    reservation_phase(chemicals, researcher_id)
+
+    for id, amount in chemicals:
+        name = get_chemical_name(id)
+        print "(%i)%s - %.3f ml" % (id, name, amount)
+
+    chemicals = reservation_phase(chemicals)
+
+    print(str(chemicals))
+
+    available, unavailable = split_chemicals_availability(chemicals)
+
 
     #for availability give options
     ##1. Reserve available chemicals and request all unavailables
@@ -454,13 +487,18 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     ##4. Cancel
     print("\n")
 
-    for id, quantity in chemicals:
-        #get_chemical name query = name
+    for id, amount, am_available  in chemicals:
         name = get_chemical_name(id)
-        print "(%i)%s - %.3f ml" % (id, name, quantity)
+        if am_available >= 0:
+            print "(%i)%s - %.3f ml - AVAILABLE" % (id, name, amount)
+        else:
+            print "(%i)%s - %.3f ml - UNAVAILABLE" % (id, name, amount)
 
 
-def reservation_phase(chemicals, researcher_id):
+
+
+
+def reservation_phase(chemicals):
 
     final_chemicals = []
 
