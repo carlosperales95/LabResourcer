@@ -454,6 +454,31 @@ def create_experiment(researcher_id,n_slices):
         db.rollback()
         return -1
 
+def manage_unavailable(unavailable):
+    print "\n Unavaiable chemicals:"
+    for id, amount in unavailable:
+        name = get_chemical_name(id)
+        print "(%i) %s %.3f" % (id,name,amount)
+
+    choice_string = raw_input("Type ids of chemicals you want to request (comma separated): ")
+
+    choice_ids = [int(x) for x in choice_string.split(",")]
+
+    chemicals_to_request = []
+
+    for id,amount in unavailable:
+        if id in choice_ids:
+            chemicals_to_request.append((id,amount))
+
+    return chemicals_to_request
+
+def request_chemicals(chemicals):
+    print "\nThe following chemicals are going to be requested:"
+
+    for id, amount in chemicals:
+        name = get_chemical_name(id)
+        print "(%i) %s %.3f" % (id,name,amount)
+
 
 def reserve_chemicals(experiment_id,chemicals):
 
@@ -552,12 +577,16 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     else:
         experiment_id = create_experiment(researcher_id,n_slices)
         reserve_chemicals(experiment_id,available)
+
         if choice == 1:
             print("Chemicals reserved. All unavaiables should be requested")
-            #Request unavailable
+            request_chemicals(unavailable)
+
         elif choice == 2:
             print("Chemicals reserved. Manage unavailable chemicals")
-            #Manage request unavailables
+            chemicals_to_request = manage_unavailable(unavailable)
+            request_chemicals(chemicals_to_request)
+
 
 
 def reservation_phase(chemicals):
