@@ -374,17 +374,18 @@ def input_PaSaloop(times):
     return primaries, stainings
 
 def input_reservation():
-    print("     CHEMICAL RESERVATION - INPUT PHASE \n")
+    print("\n\n     CHEMICAL RESERVATION - INPUT PHASE \n")
     print("______________________________________________________________________\n")
-    choice = int(raw_input("Please enter the desired option: "))
     #for availability give options
     print("1.- Reserve available chemicals and request all unavailables")
     print("2.- Reserve availables and manage requests")
     print("3.- Reserve available chemicals only")
     print("4.- Cancel")
 
+    choice = int(raw_input("\nPlease enter the desired option: "))
+
     if(choice < 1 or choice > 4):
-        print("That is not an option")
+        print("%i is not an option.",choice)
         choice = input_reservation()
     else:
         return choice
@@ -442,14 +443,30 @@ def calculation_phase(n_slices, primaries, stainings):
 
     return chemicals
 
+def create_experiment(researcher_id,n_slices):
+    sql = "INSERT INTO experiment (researcher_id,tissue_slices) VALUES (%s,%s)" % (researcher_id,n_slices)
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+        return cursor.lastrowid
+    except:
+        db.rollback()
+        return -1
+
+
 def reserve_chemicals(experiment_id,chemicals):
+
     for chemical in chemicals:
-        sql = "INSERT INTO experiment_chemical(experiment_id,chemical_id,name)VALUES (%s,%s,%s)" % (experiment_id,chemical[0],chemical[1])
+
+        sql = "INSERT INTO experiment_chemical(experiment_id,chemical_id,amount)VALUES (%s,%s,%s)" % (experiment_id,chemical[0],chemical[1])
+
         try:
            # Execute the SQL command
            cursor.execute(sql)
            # Commit your changes in the database
            db.commit()
+
         except:
            # Rollback in case there is any error
            db.rollback()
@@ -497,14 +514,6 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
 
     #print(chemicals)
 
-    available, unavailable = split_chemicals_availability(chemicals)
-
-
-    #for availability give options
-    ##1. Reserve available chemicals and request all unavailables
-    ##2. Reserve availables and manage requests
-    ##3. Reserve available chemicals only
-    ##4. Cancel
     print("\n")
 
     for id, amount, am_available  in chemicals:
@@ -517,6 +526,38 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
 
             #print "(%i)%s - %.3f ml - UNAVAILABLE" % (id, name, amount)
 
+    #############
+    #RESERVATION
+    # 1.- Reserve available chemicals and request all unavailables
+    # 2.- Reserve availables and manage requests
+    # 3.- Reserve available chemicals only
+    # 4.- Cancel
+    ##############
+    available, unavailable = split_chemicals_availability(chemicals)
+
+    print("\n AVAILABLE")
+    for id, amount in available:
+        name = get_chemical_name(id)
+        print "(%i) %s %.3f" % (id,name,amount)
+
+    print("\n UNAVAILABLE")
+    for id, amount in unavailable:
+        name = get_chemical_name(id)
+        print "(%i) %s %.3f" % (id,name,amount)
+
+    choice = input_reservation()
+
+    if choice == 4:
+        print "Experiment cancelled"
+    else:
+        experiment_id = create_experiment(researcher_id,n_slices)
+        reserve_chemicals(experiment_id,available)
+        if choice == 1:
+            print("Chemicals reserved. All unavaiables should be requested")
+            #Request unavailable
+        elif choice == 2:
+            print("Chemicals reserved. Manage unavailable chemicals")
+            #Manage request unavailables
 
 
 def reservation_phase(chemicals):
