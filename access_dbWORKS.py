@@ -132,9 +132,7 @@ def check_availability(chemical_id):
 
     for reserve in res_amount:
         amount -= reserve
-        print "- %.3f" %(reserve)
 
-    print "Available quant: %.3f" %(amount)
     return amount
 
 
@@ -149,7 +147,6 @@ def check_reserved(chemical_id):
         results = cursor.fetchall()
         for row in results:
             amount.append(row[2])
-            print(amount)
 
     except:
         print "Error: unable to fetch data"
@@ -295,37 +292,27 @@ def calculate_variation_steps(n_slices, primaries, stainings):
 
     chemicals = []
     equal_pas = check_compatibility(primaries)
-    #print(equal_pas)
     chemicals.append(get_chem_step("degrease", n_slices)) #degrease
 
     if len(equal_pas) == 1:
-        #print "Todos diferentes: "
         for index, primary in enumerate(primaries):
             #print "Pasada - "
             repeating_block(chemicals, n_slices, primary, stainings[index])
-        #print "\n"
     else:
-        #print "Algunos estan iguals: "
         remaining_p = primaries[:]
         remaining_s = stainings[:]
         header_block(chemicals, n_slices)
         for item in equal_pas:
             step_PaSaS(chemicals, n_slices, primaries[item], stainings[item])
-            #print(primaries)
-            #print(stainings)
             num = item
             del remaining_p[0]
             del remaining_s[0]
-            #print "Pasada -"
 
         chemicals.append(get_chem_step("wash", n_slices))#wash
-        #print "\n"
 
         if len(remaining_p) == 1:
-            #print "Parece que eran todos: "
             repeating_block(chemicals, n_slices, remaining_p.pop(0), remaining_s.pop(0))
-            #print "Lonely pasada"
-            #print "\n"
+
 
     chemicals.append(get_chem_step("coverslip", n_slices))#coverslip
     return chemicals
@@ -527,9 +514,9 @@ def input_phase():
 
     primaries, stainings = input_PaSaloop(times)
 
-    print("     EXPERIMENT PREPARATION - INPUT PHASE: PROTOCOL SELECTION \n")
-    print("______________________________________________________________________\n")
-    print("List of Protocols:")
+    #print("     EXPERIMENT PREPARATION - INPUT PHASE: PROTOCOL SELECTION \n")
+    #print("______________________________________________________________________\n")
+    #print("List of Protocols:")
     #query("protocol")
     print("\n")
 
@@ -632,12 +619,6 @@ db = MySQLdb.connect("localhost",credentials.username,credentials.password,"lab_
 cursor = db.cursor()
 
 execution()
-
-#print(chemicals)
-
-#def inventory_checkup():
-    #query to check the amounts available for chemicals[] in inventory and add status to dest_array
-
 
 db.close()
 
