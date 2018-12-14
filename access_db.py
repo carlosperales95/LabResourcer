@@ -122,11 +122,14 @@ def check_availability(chemical_id):
     except:
         print "Error: unable to fetch data"
 
+
     res_amount = check_reserved(chemical_id)
 
     for reserve in res_amount:
         amount -= reserve
+        print "- %.3f" %(reserve)
 
+    print "Available quant: %.3f" %(amount)
     return amount
 
 
@@ -141,6 +144,7 @@ def check_reserved(chemical_id):
         results = cursor.fetchall()
         for row in results:
             amount.append(row[2])
+            print(amount)
 
     except:
         print "Error: unable to fetch data"
@@ -188,7 +192,7 @@ def get_chem_prim_antibody(n_slices, pa_id):
     pa_dilution = get_pa_dilution(pa_id)
 
     final_dilution = pa_dilution/2 #Get pa_diution from query
-    pa_amount = total * final_dilution
+    pa_amount = total / final_dilution
     chems.append((pa_id,pa_amount))
 
     return chems
@@ -271,7 +275,7 @@ def indexall(list, value):
 
 def header_block(chemicals, n_slices):
 
-    chemicals.append(get_chem_step("degrease", n_slices)) #degrease
+    #chemicals.append(get_chem_step("degrease", n_slices)) #degrease
     chemicals.append(get_chem_step("antigen", n_slices))#antigen
     chemicals.append(get_chem_step("wash", n_slices))#wash
 
@@ -308,37 +312,37 @@ def calculate_variation_steps(n_slices, primaries, stainings):
 
     chemicals = []
     equal_pas = check_compatibility(primaries)
-    print(equal_pas)
+    #print(equal_pas)
     chemicals.append(get_chem_step("degrease", n_slices)) #degrease
 
     if len(equal_pas) == 1:
-        print "Todos diferentes: "
+        #print "Todos diferentes: "
         for index, primary in enumerate(primaries):
-            print "Pasada - "
+            #print "Pasada - "
             repeating_block(chemicals, n_slices, primary, stainings[index])
-        print "\n"
+        #print "\n"
     else:
-        print "Algunos estan iguals: "
+        #print "Algunos estan iguals: "
         remaining_p = primaries[:]
         remaining_s = stainings[:]
         header_block(chemicals, n_slices)
         for item in equal_pas:
             step_PaSaS(chemicals, n_slices, primaries[item], stainings[item])
-            print(primaries)
-            print(stainings)
+            #print(primaries)
+            #print(stainings)
             num = item
             del remaining_p[0]
             del remaining_s[0]
-            print "Pasada -"
+            #print "Pasada -"
 
         chemicals.append(get_chem_step("wash", n_slices))#wash
-        print "\n"
+        #print "\n"
 
         if len(remaining_p) == 1:
-            print "Parece que eran todos: "
+            #print "Parece que eran todos: "
             repeating_block(chemicals, n_slices, remaining_p.pop(0), remaining_s.pop(0))
-            print "Lonely pasada"
-            print "\n"
+            #print "Lonely pasada"
+            #print "\n"
 
     chemicals.append(get_chem_step("coverslip", n_slices))#coverslip
     return chemicals
@@ -369,6 +373,21 @@ def input_PaSaloop(times):
 
     return primaries, stainings
 
+def input_reservation():
+    print("     CHEMICAL RESERVATION - INPUT PHASE \n")
+    print("______________________________________________________________________\n")
+    choice = int(raw_input("Please enter the desired option: "))
+    #for availability give options
+    print("1.- Reserve available chemicals and request all unavailables")
+    print("2.- Reserve availables and manage requests")
+    print("3.- Reserve available chemicals only")
+    print("4.- Cancel")
+
+    if(choice < 1 or choice > 4):
+        print("That is not an option")
+        choice = input_reservation()
+    else:
+        return choice
 
 def input_phase():
 
@@ -453,7 +472,7 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     researcher_name = get_researcher_name(researcher_id)
 
     print("     EXPERIMENT PREPARATION - OUTPUT PHASE\n")
-    print("______________________________________________________________________\n")
+    print("________________________\n")
     print "Researcher: %s - ID(%i) \n" %(researcher_name, researcher_id)
     print("Experiment ID: \n")
     print "Number of slices: %i \n" %(n_slices)
@@ -469,13 +488,14 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     print("=========================")
     #list with availability
 
-    for id, amount in chemicals:
-        name = get_chemical_name(id)
-        print "(%i)%s - %.3f ml" % (id, name, amount)
+#    for id, amount in chemicals:
+#        name = get_chemical_name(id)
+#        print "(%i)%s - %.3f ml" % (id, name, amount)
+
 
     chemicals = reservation_phase(chemicals)
 
-    print(str(chemicals))
+    #print(chemicals)
 
     available, unavailable = split_chemicals_availability(chemicals)
 
@@ -490,11 +510,12 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     for id, amount, am_available  in chemicals:
         name = get_chemical_name(id)
         if am_available >= 0:
-            print "(%i)%s - %.3f ml - AVAILABLE" % (id, name, amount)
+            #print "(%i)%s - %.3f ml - AVAILABLE" % (id, name, amount)
+            print "(%i)%s - AVAILABLE " %(id,name)
         else:
-            print "(%i)%s - %.3f ml - UNAVAILABLE" % (id, name, amount)
+            print "(%i)%s - UNAVAILABLE " %(id,name)
 
-
+            #print "(%i)%s - %.3f ml - UNAVAILABLE" % (id, name, amount)
 
 
 
@@ -503,11 +524,16 @@ def reservation_phase(chemicals):
     final_chemicals = []
 
     for id, quantity in chemicals:
+        #print(id)
+        #print(quantity)
         amount = check_availability(id)
+        #print(amount)
         final_chemicals.append((id, quantity, (amount-quantity)))
+        #print "Am-q: %.3f" % (amount-quantity)
+
+    #print(final_chemicals)
 
     return final_chemicals
-
 
 def execution():
 
