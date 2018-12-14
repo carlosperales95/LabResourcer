@@ -577,13 +577,12 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     else:
         experiment_id = create_experiment(researcher_id,n_slices)
         reserve_chemicals(experiment_id,available)
+        print("\nAvailable chemicals reserved.\n")
 
         if choice == 1:
-            print("Chemicals reserved. All unavaiables should be requested")
             request_chemicals(unavailable)
 
         elif choice == 2:
-            print("Chemicals reserved. Manage unavailable chemicals")
             chemicals_to_request = manage_unavailable(unavailable)
             request_chemicals(chemicals_to_request)
 
