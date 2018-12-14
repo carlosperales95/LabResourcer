@@ -383,7 +383,7 @@ def indexall(list, value):
 
 
 
-# ------------ MAIN TERMINAL BASED FUNCTIONS -------------- #
+# ------------- SUPPORT FUNCTIONS FOR MAIN ---------------- #
 
 
 def input_PaSaloop(times):
@@ -393,7 +393,7 @@ def input_PaSaloop(times):
 
     for i in range(0, times):
 
-        print("     EXPERIMENT PREPARATION - INPUT PHASE: PRIMARY ANTIBODY SELECTION %i \n" %(i))
+        print("     EXPERIMENT PREPARATION - INPUT PHASE: PRIMARY ANTIBODY SELECTION %i \n" %(i+1))
         print("______________________________________________________________________\n")
         print("List of Primary Antibodies:")
         query("primary")
@@ -401,34 +401,95 @@ def input_PaSaloop(times):
         primaries.append (int(raw_input("Please select the primary antibody %i ID that you will use in your experiment: " %(i))))
         print("\n")
 
-        print("     EXPERIMENT PREPARATION - INPUT PHASE: STAINING SELECTION %i \n" %(i))
+        print("     EXPERIMENT PREPARATION - INPUT PHASE: STAINING SELECTION %i \n" %(i+1))
         print("______________________________________________________________________\n")
         print("List of Staining Methods:")
         query("staining")
         print("\n")
 
-        stainings.append(int(raw_input("Please select the staining  %i ID you want to perform: " %(i))))
+        stainings.append(int(raw_input("Please select the staining %i ID you want to perform: " %(i+1))))
         print("\n")
 
     return primaries, stainings
 
 
+def request_chemicals(chemicals):
+    print "\nThe following chemicals are going to be requested:"
+
+    for id, amount in chemicals:
+        name = get_chemical_name(id)
+        print "(%i) %s %.3f" % (id,name,amount)
+
+
+def manage_unavailable(unavailable):
+
+    print "\n Unavaiable chemicals:"
+    for id, amount in unavailable:
+        name = get_chemical_name(id)
+        print "(%i) %s %.3f" % (id,name,amount)
+
+    choice_string = raw_input("Type ids of chemicals you want to request (comma separated): ")
+
+    choice_ids = [int(x) for x in choice_string.split(",")]
+
+    chemicals_to_request = []
+
+    for id,amount in unavailable:
+        if id in choice_ids:
+            chemicals_to_request.append((id,amount))
+
+    return chemicals_to_request
+
+
+def split_chemicals_availability(chemicals):
+    available = []
+    unavailable = []
+
+    for chemical in chemicals:
+        if chemical[2]>=0:
+            available.append((chemical[0],chemical[1])) #Append chemcal_id and amount Needed
+        else:
+            unavailable.append((chemical[0],chemical[2]*(-1))) #Append chemical_id and necessary amount to request
+
+    return available, unavailable
+
+
 def input_reservation():
 
-    print("     CHEMICAL RESERVATION - INPUT PHASE \n")
+    print("\n\n     CHEMICAL RESERVATION - INPUT PHASE \n")
     print("______________________________________________________________________\n")
-    choice = int(raw_input("Please enter the desired option: "))
     #for availability give options
     print("1.- Reserve available chemicals and request all unavailables")
     print("2.- Reserve availables and manage requests")
     print("3.- Reserve available chemicals only")
     print("4.- Cancel")
 
+    choice = int(raw_input("\nPlease enter the desired option: "))
+
     if(choice < 1 or choice > 4):
-        print("That is not an option")
+        print("%i is not an option.",choice)
         choice = input_reservation()
     else:
         return choice
+
+
+def availability_phase(chemicals):
+
+    final_chemicals = []
+
+    for id, quantity in chemicals:
+
+        amount = check_availability(id)
+        final_chemicals.append((id, quantity, (amount-quantity)))
+
+    return final_chemicals
+
+
+# --------------------------------------------------------- #
+
+
+
+# ----------------- MAIN PROGRAM PHASES ------------------- #
 
 
 def input_phase():
@@ -475,24 +536,6 @@ def input_phase():
     return researcher_id,n_slices,primaries,stainings
 
 
-def input_reservation():
-    print("\n\n     CHEMICAL RESERVATION - INPUT PHASE \n")
-    print("______________________________________________________________________\n")
-    #for availability give options
-    print("1.- Reserve available chemicals and request all unavailables")
-    print("2.- Reserve availables and manage requests")
-    print("3.- Reserve available chemicals only")
-    print("4.- Cancel")
-
-    choice = int(raw_input("\nPlease enter the desired option: "))
-
-    if(choice < 1 or choice > 4):
-        print("%i is not an option.",choice)
-        choice = input_reservation()
-    else:
-        return choice
-
-
 def calculation_phase(n_slices, primaries, stainings):
 
     chemicals = calculate_variation_steps(n_slices, primaries, stainings)
@@ -501,17 +544,32 @@ def calculation_phase(n_slices, primaries, stainings):
     return chemicals
 
 
-def split_chemicals_availability(chemicals):
-    available = []
-    unavailable = []
+def reservation_phase(chemicals, researcher_id, n_slices):
 
-    for chemical in chemicals:
-        if chemical[2]>=0:
-            available.append((chemical[0],chemical[1])) #Append chemcal_id and amount Needed
-        else:
-            unavailable.append((chemical[0],chemical[2]*(-1))) #Append chemical_id and necessary amount to request
+    #############
+    #RESERVATION
+    # 1.- Reserve available chemicals and request all unavailables
+    # 2.- Reserve availables and manage requests
+    # 3.- Reserve available chemicals only
+    # 4.- Cancel
+    ##############
 
-    return available, unavailable
+    available, unavailable = split_chemicals_availability(chemicals)
+    choice = input_reservation()
+
+    if choice == 4:
+        print "Experiment cancelled"
+
+    else:
+        experiment_id = create_experiment(researcher_id,n_slices)
+        reserve_chemicals(experiment_id,available)
+        print("\nAvailable chemicals reserved.\n")
+
+        if choice == 1:
+            request_chemicals(unavailable)
+        elif choice == 2:
+            chemicals_to_request = manage_unavailable(unavailable)
+            request_chemicals(chemicals_to_request)
 
 
 def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
@@ -534,24 +592,9 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
     print("\n")
     print("List of Chemicals Needed:")
     print("=========================")
-    #list with availability
-
-#    for id, amount in chemicals:
-#        name = get_chemical_name(id)
-#        print "(%i)%s - %.3f ml" % (id, name, amount)
-
-
-    chemicals = reservation_phase(chemicals)
-
-    available, unavailable = split_chemicals_availability(chemicals)
-
-
-    #for availability give options
-    ##1. Reserve available chemicals and request all unavailables
-    ##2. Reserve availables and manage requests
-    ##3. Reserve available chemicals only
-    ##4. Cancel
     print("\n")
+
+    chemicals = availability_phase(chemicals)
 
     for id, amount, am_available  in chemicals:
 
@@ -563,50 +606,18 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings):
         else:
             print "(%i) %s %.3f ml - UNAVAILABLE " %(id, name, amount)
 
-    choice = input_reservation()
-
-    if choice == 4:
-        print "Experiment cancelled"
-    else:
-        experiment_id = create_experiment(researcher_id,n_slices)
-        reserve_chemicals(experiment_id,available)
-        if choice == 1:
-            print("Chemicals reserved. All unavaiables should be requested")
-            #Request unavailable
-        elif choice == 2:
-            print("Chemicals reserved. Manage unavailable chemicals")
-            #Manage request unavailables
-
-
-
-def reservation_phase(chemicals):
-
-    final_chemicals = []
-
-    for id, quantity in chemicals:
-        #print(id)
-        #print(quantity)
-        amount = check_availability(id)
-        #print(amount)
-        final_chemicals.append((id, quantity, (amount-quantity)))
-        #print "Am-q: %.3f" % (amount-quantity)
-
-    #print(final_chemicals)
-
-    return final_chemicals
+    return chemicals
 
 
 def execution():
 
     researcher_id, n_slices, primaries, stainings = input_phase()
 
-    print("Calculating values with the experiment input...")
-    print("\n")
-
-
     chemicals = calculation_phase(n_slices, primaries, stainings)
 
-    output_phase(chemicals, researcher_id, n_slices, primaries, stainings)
+    chemicals = output_phase(chemicals, researcher_id, n_slices, primaries, stainings)
+
+    reservation_phase(chemicals, researcher_id, n_slices)
 
 
 # --------------------------------------------------------- #
