@@ -160,6 +160,17 @@ def create_experiment(researcher_id,n_slices,db,cursor):
         db.rollback()
         return -1
 
+#Returns the id of the last experiment made
+def get_last_experiment_id(cursor):
+    sql = "SELECT experiment_id FROM experiment ORDER BY experiment_id DESC LIMIT 1"
+
+    try:
+        cursor.execute(sql)
+        experiment_id = cursor.fetchone()
+        return experiment_id
+    except:
+        print("Error obtaining last experiment id")
+        return -1
 # Inserts in the database the reserved chemicals for the given experiment
 def reserve_chemicals(experiment_id,chemicals,db,cursor):
 

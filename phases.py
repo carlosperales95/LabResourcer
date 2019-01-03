@@ -197,7 +197,8 @@ def output_phase(chemicals, researcher_id, n_slices, primaries, stainings,cursor
     print("     EXPERIMENT PREPARATION - OUTPUT PHASE\n")
     print("________________________\n")
     print "Researcher: %s - ID(%i) \n" %(researcher_name, researcher_id)
-    print("Experiment ID: \n")
+    experiment_id = int(get_last_experiment_id(cursor)[0])+1
+    print "Experiment ID: %i \n" % experiment_id
     print "Number of slices: %i \n" %(n_slices)
 
     for index, primary in enumerate(primaries):
