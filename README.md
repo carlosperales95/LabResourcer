@@ -5,5 +5,5 @@ Repository for the course Knowledge Engineering.
 * [MySQLdb](https://pypi.org/project/mysqlclient/)
 
 ## Installation
-1. Import *lab_resourcer.sql* in MySQLdb
+1. Import *lab_resourcer.sql* in MySQL
 2. Execute *python LabResourcer.py*
